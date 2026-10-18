@@ -2,6 +2,7 @@ module Twilight.Core
 singleton Theme 1.0 Theme.qml
 singleton Ticker 1.0 Ticker.qml
 singleton Icons 1.0 Icons.qml
+singleton Astro 1.0 Astro.qml
 Sticker 1.0 ui/Sticker.qml
 Tap 1.0 ui/Tap.qml
 StyledText 1.0 ui/StyledText.qml
