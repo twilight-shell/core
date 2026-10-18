@@ -19,6 +19,7 @@ Sticker {
 | `Theme` (singleton) | Palette, font, sizes. Palette comes from Twilight, a preset, or a wallpaper. |
 | `Ticker` (singleton) | A slow shared clock for idle motion, so endless animations don't redraw at the display's refresh rate. |
 | `Icons` (singleton) | Icon lookup with a chain of candidates. |
+| `Astro` (singleton) | Moon phase and its name for any date. |
 | `Sticker`, `Tap`, `StyledText`, `Toggle`, `StarSlider`, `RollText` | The sticker UI kit. |
 | `Moon`, `Starfield`, `SparkleBurst` | Decorations. |
 
