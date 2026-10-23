@@ -258,6 +258,17 @@ function parse(text) {
     }
 }
 
+// The value at `path` in a parsed document, undefined when it isn't there.
+function lookup(data, path) {
+    let at = data;
+    for (const part of path) {
+        if (at === null || typeof at !== "object" || !(part in at))
+            return undefined;
+        at = at[part];
+    }
+    return at;
+}
+
 // ---- writing ----------------------------------------------------------
 
 function formatKey(key) {
@@ -393,4 +404,10 @@ function set(text, path, value) {
         at--;
     lines.splice(at, 0, rendered);
     return lines.join(eol);
+}
+
+// A first settings file made from the defaults: the same text under a short
+// note, so the file shows every setting with the value in use.
+function template(defaults) {
+    return "# Every setting with its default value. Change what you like.\n\n" + defaults.replace(/\r\n/g, "\n").replace(/\n+$/, "") + "\n";
 }

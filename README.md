@@ -41,13 +41,25 @@ Components keep their settings in TOML, one file each in
 `~/.config/twilight-shell/`. Comments and layout survive when the shell writes a
 value back.
 
-```qml
-ConfigFile { id: config; name: "app-launcher" }   // app-launcher.toml
+The defaults are a TOML file shipped with the component and nowhere else, so the
+code never repeats them:
 
-terminal: config.get("terminal", "xterm")         // the default lives in the code
-height: config.get("bar.height", 36)              // `height` in the [bar] table
-// config.set("terminal", "ghostty")
+```qml
+ConfigFile {
+    id: config
+    name: "app-launcher"                                       // app-launcher.toml
+    defaults: Qt.resolvedUrl("app-launcher.defaults.toml")
+}
+
+terminal: config.get("terminal")                // the file, else the defaults
+height: config.get("bar.height")                // `height` in the [bar] table
+// config.set("terminal", ["ghostty", "-e"])
 ```
+
+A component that starts without a settings file creates one from its defaults,
+so the file shows every setting with the value in use. Values are copied once:
+a default that changes in a later version doesn't overwrite yours, and a key the
+file lacks still reads its default.
 
 `Theme` reads `theme.toml`, shared by every component:
 
@@ -57,8 +69,8 @@ palette = "wallpaper"   # "twilight", "luna", "rarity", "pinkie", "celestia",
 wallpaper = ""          # picture to take the colors from
 ```
 
-A missing file reads as empty. A file that doesn't parse is reported in
-`config.error` and the last good values stay.
+A file that doesn't parse is reported in `config.error` and the last good values
+stay.
 
 ## Installing
 
