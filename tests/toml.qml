@@ -1,5 +1,6 @@
 import QtQuick
 import "../Twilight/Core/util/Toml.js" as Toml
+import "../Twilight/Core/theme/Palette.js" as Palette
 
 // Tests for the TOML reader and writer. Needs only Qt's qml tool:
 //     QT_QPA_PLATFORM=offscreen qml tests/toml.qml
@@ -65,6 +66,16 @@ Item {
            '# Every setting with its default value. Change what you like.\n\n# why\na = 1\n\n[t]\nb = [1,\n 2]\n');
         eq("template parses to the defaults", Toml.parse(Toml.template('a = 1\n[t]\nb = 2')), {a:1,t:{b:2}});
         eq("template then set", Toml.parse(Toml.set(Toml.template('a = 1\n[t]\nb = 2'), ["t", "b"], 5)), {a:1,t:{b:5}});
+
+        // custom palettes
+        const mine = Palette.fromCustom({ base: "#3b2a6b", primary: "#c9a0f0", accent: "#ec4f9a", secondary: "#5a5fc7", star: "#ffd36b" });
+        eq("custom palette has every color", Palette.keys.filter(k => mine[k] === undefined), []);
+        eq("custom override wins", String(mine.star), "#ffd36b");
+        eq("custom is built from the base hue", Math.abs(mine.bg.hslHue - Qt.color("#3b2a6b").hslHue) < 0.02, true);
+        eq("custom primary is used as picked", String(Palette.fromCustom({ primary: "#12ab34" }).primary), "#12ab34");
+        eq("the others follow the primary's hue", Math.abs(Palette.fromCustom({ primary: "#12ab34" }).text.hslHue - Qt.color("#12ab34").hslHue) < 0.02, true);
+        eq("custom ignores a bad color", String(Palette.fromCustom({ star: "red" }).star), String(Palette.fromCustom({}).star));
+        eq("isColor", Palette.isColor("#14101f") && Palette.isColor("#14101fff") && !Palette.isColor("14101f") && !Palette.isColor("#14101"), true);
 
         // writing next to arrays of tables
         const withAot = 'a = 1\n[t]\nb = 2\n\n[[o]]\nk = 1\n\n[[o]]\nk = 2\n';
