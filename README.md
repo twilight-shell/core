@@ -20,6 +20,7 @@ Sticker {
 | `Ticker` (singleton) | A slow shared clock for idle motion, so endless animations don't redraw at the display's refresh rate. |
 | `Icons` (singleton) | Icon lookup with a chain of candidates. |
 | `Astro` (singleton) | Moon phase and its name for any date. |
+| `ConfigFile` | A TOML settings file in `~/.config/twilight-shell/`, reloaded when it changes. |
 | `Sticker`, `Tap`, `StyledText`, `Toggle`, `StarSlider`, `RollText` | The sticker UI kit. |
 | `Moon`, `Starfield`, `SparkleBurst` | Decorations. |
 
@@ -31,6 +32,23 @@ Binding { target: Theme; property: "paletteName"; value: myConfig.palette }
 Binding { target: Theme; property: "wallpaper"; value: myConfig.wallpaper }
 Binding { target: Theme; property: "liveWallpaper"; value: myConfig.live !== "" }
 ```
+
+## Settings
+
+Components keep their settings in TOML, one file each in
+`~/.config/twilight-shell/`. Comments and layout survive when the shell writes a
+value back.
+
+```qml
+ConfigFile { id: config; name: "app-launcher" }   // app-launcher.toml
+
+terminal: config.get("terminal", "xterm")         // the default lives in the code
+height: config.get("bar.height", 36)              // `height` in the [bar] table
+// config.set("terminal", "ghostty")
+```
+
+A missing file reads as empty. A file that doesn't parse is reported in
+`config.error` and the last good values stay.
 
 ## Installing
 

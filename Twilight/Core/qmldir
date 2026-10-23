@@ -3,6 +3,7 @@ singleton Theme 1.0 theme/Theme.qml
 singleton Ticker 1.0 util/Ticker.qml
 singleton Icons 1.0 util/Icons.qml
 singleton Astro 1.0 util/Astro.qml
+ConfigFile 1.0 util/ConfigFile.qml
 Sticker 1.0 ui/Sticker.qml
 Tap 1.0 ui/Tap.qml
 StyledText 1.0 ui/StyledText.qml
