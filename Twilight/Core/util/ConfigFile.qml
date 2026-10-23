@@ -56,6 +56,17 @@ Scope {
         mkdir.running = true;
     }
 
+    // Removes `key` with its value, or a whole table; nothing happens when the
+    // file has neither. The default shows again where there is one.
+    function remove(key) {
+        const parts = Array.isArray(key) ? key : String(key).split(".");
+        const next = Toml.remove(source, parts);
+        if (next === source || !apply(next))
+            return;
+        pending = next;
+        mkdir.running = true;
+    }
+
     property string pending: ""
     // Set once the directory exists, so a missing file can be created.
     property bool dirReady: false

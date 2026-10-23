@@ -437,6 +437,76 @@ function set(text, path, value) {
     return lines.join(eol);
 }
 
+// `text` without `path`: a key (["table", "key"]) with its value, which may run
+// over several lines, or a whole table (["table"] or ["a", "b"]) with its keys,
+// its comments and the tables inside it. The rest of the file is left as it
+// was. Text that has neither comes back unchanged.
+function remove(text, path) {
+    const eol = text.includes("\r\n") ? "\r\n" : "\n";
+    const lines = text.replace(/\r\n/g, "\n").split("\n");
+
+    // A key of a table.
+    if (path.length > 0) {
+        const table = path.slice(0, -1);
+        const key = path[path.length - 1];
+        let start = table.length === 0 ? 0 : -1;
+        let end = lines.length;
+        for (let i = 0; i < lines.length; i++) {
+            const header = headerOf(lines[i]);
+            if (!header)
+                continue;
+            if (start >= 0) {
+                end = i;
+                break;
+            }
+            if (table.length > 0 && !header.array && samePath(header.path, table))
+                start = i + 1;
+        }
+        if (table.length === 0) {
+            const first = lines.findIndex(l => headerOf(l));
+            end = first < 0 ? lines.length : first;
+        }
+        if (start >= 0) {
+            const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const keyLine = new RegExp("^(\\s*)(" + escaped + "|\"" + escaped + "\")(\\s*=\\s*)");
+            for (let i = start; i < end; i++) {
+                const m = keyLine.exec(lines[i]);
+                if (!m)
+                    continue;
+                const stop = valueEnd(lines, i, m[0].length);
+                lines.splice(i, stop.line - i + 1);
+                // The blank line that followed it would now start the file.
+                if (i === 0 && lines[0] === "")
+                    lines.shift();
+                return lines.join(eol);
+            }
+        }
+    }
+
+    // A table: its header up to the next one that isn't inside it.
+    const first = lines.findIndex(l => {
+        const header = headerOf(l);
+        return header && !header.array && samePath(header.path, path);
+    });
+    if (first < 0)
+        return text;
+    let last = lines.length;
+    for (let i = first + 1; i < lines.length; i++) {
+        const header = headerOf(lines[i]);
+        if (header && !(header.path.length >= path.length && samePath(header.path.slice(0, path.length), path))) {
+            last = i;
+            break;
+        }
+    }
+    lines.splice(first, last - first);
+    // Don't leave two blank lines, or one at the very end, where the table was.
+    while (first < lines.length && first > 0 && lines[first] === "" && lines[first - 1] === "")
+        lines.splice(first, 1);
+    while (lines.length > 1 && lines[lines.length - 1] === "" && lines[lines.length - 2] === "")
+        lines.pop();
+    return lines.join(eol);
+}
+
 // A first settings file made from the defaults: the same text under a short
 // note, so the file shows every setting with the value in use.
 function template(defaults) {
