@@ -16,6 +16,8 @@ Item {
     default property alias content: sticker.content
 
     signal clicked(var mouse)
+    // The wheel goes on to whatever is underneath, say a page that scrolls,
+    // unless a handler uses it by setting `event.accepted = true`.
     signal wheel(var event)
 
     readonly property real sink: mouse.pressed ? lift : 0
@@ -45,6 +47,9 @@ Item {
         cursorShape: Qt.PointingHandCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onClicked: event => root.clicked(event)
-        onWheel: event => root.wheel(event)
+        onWheel: event => {
+            event.accepted = false;
+            root.wheel(event);
+        }
     }
 }
