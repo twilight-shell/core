@@ -1,9 +1,10 @@
 .pragma library
 
 // A small TOML reader and writer for settings files: tables, dotted keys,
-// strings, numbers, booleans, arrays and inline tables. Dates and arrays of
-// tables are not supported. Writing changes one value in place, so the comments
-// and layout of a file edited by hand survive.
+// strings, numbers, booleans, arrays, inline tables and arrays of tables
+// (`[[name]]`). Dates are not supported. Writing changes one value in place, so
+// the comments and layout of a file edited by hand survive. Writing into an
+// array of tables isn't supported.
 
 function fail(text, pos, message) {
     const line = text.slice(0, pos).split("\n").length;
@@ -202,15 +203,23 @@ function parse(text) {
         fail(text, start, "unexpected value '" + raw + "'");
     }
 
-    // Walks down `path` from `base`, creating tables on the way.
+    // The arrays made by `[[name]]` headers, as opposed to written-out ones.
+    const tableArrays = [];
+
+    // Walks down `path` from `base`, creating tables on the way. Through an
+    // array of tables it goes into the last table added.
     function descend(base, path) {
         let at = base;
         for (const part of path) {
             if (at[part] === undefined)
                 at[part] = {};
-            else if (typeof at[part] !== "object" || Array.isArray(at[part]))
+            const next = at[part];
+            if (tableArrays.includes(next))
+                at = next[next.length - 1];
+            else if (typeof next !== "object" || Array.isArray(next))
                 fail(text, pos, "'" + part + "' is not a table");
-            at = at[part];
+            else
+                at = next;
         }
         return at;
     }
@@ -236,15 +245,31 @@ function parse(text) {
             return root;
 
         if (peek() === "[") {
-            if (text[pos + 1] === "[")
-                fail(text, pos, "arrays of tables are not supported");
-            pos++;
+            const array = text[pos + 1] === "[";
+            const close = array ? "]]" : "]";
+            pos += array ? 2 : 1;
             const path = readKey();
             skipSpace();
-            if (peek() !== "]")
-                fail(text, pos, "expected ]");
-            pos++;
-            table = descend(root, path);
+            if (!text.startsWith(close, pos))
+                fail(text, pos, "expected " + close);
+            pos += close.length;
+
+            const parent = descend(root, path.slice(0, -1));
+            const key = path[path.length - 1];
+            if (array) {
+                if (parent[key] === undefined) {
+                    parent[key] = [];
+                    tableArrays.push(parent[key]);
+                } else if (!tableArrays.includes(parent[key])) {
+                    fail(text, pos, "'" + key + "' is not an array of tables");
+                }
+                table = {};
+                parent[key].push(table);
+            } else {
+                if (tableArrays.includes(parent[key]))
+                    fail(text, pos, "'" + key + "' is an array of tables");
+                table = descend(parent, [key]);
+            }
         } else {
             const key = readKey();
             skipSpace();
@@ -332,10 +357,16 @@ function valueEnd(lines, index, from) {
     return { line: lines.length - 1, col: lines[lines.length - 1].length };
 }
 
-// Tables are named by `[a.b]` headers; the key parsed back out of a line.
+// Tables are named by `[a.b]` headers and arrays of tables by `[[a.b]]`; what a
+// line holds, or null when it isn't a header.
 function headerOf(line) {
-    const m = /^\s*\[([^\[\]]+)\]\s*(#.*)?$/.exec(line);
-    return m ? m[1].split(".").map(p => p.trim().replace(/^["']|["']$/g, "")) : null;
+    const m = /^\s*(\[\[?)([^\[\]]+)\]\]?\s*(#.*)?$/.exec(line);
+    if (!m)
+        return null;
+    return {
+        array: m[1] === "[[",
+        path: m[2].split(".").map(p => p.trim().replace(/^["']|["']$/g, ""))
+    };
 }
 
 function samePath(a, b) {
@@ -364,7 +395,7 @@ function set(text, path, value) {
             end = i;
             break;
         }
-        if (table.length > 0 && samePath(header, table))
+        if (table.length > 0 && !header.array && samePath(header.path, table))
             start = i + 1;
     }
     if (table.length === 0 && start === 0) {
