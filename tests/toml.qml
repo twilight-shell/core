@@ -43,7 +43,16 @@ Item {
         throws("bad str", () => Toml.parse('a = "x'), "unterminated");
         throws("junk", () => Toml.parse('a = 1 2'), "unexpected");
         throws("line no", () => Toml.parse('a = 1\nb = 2\nc = ?'), "line 3");
-        throws("aot", () => Toml.parse('[[x]]'), "not supported");
+        eq("array of tables", Toml.parse('[[o]]\nk = 1\n[[o]]\nk = 2\nname = "b"\n'), {o:[{k:1},{k:2,name:"b"}]});
+        eq("aot under a table", Toml.parse('[a]\nx = 0\n[[a.o]]\nk = 1\n[[a.o]]\nk = 2\n'), {a:{x:0,o:[{k:1},{k:2}]}});
+        eq("aot with sub-table", Toml.parse('[[o]]\nk = 1\n[o.sub]\nz = 5\n[[o]]\nk = 2\n'), {o:[{k:1,sub:{z:5}},{k:2}]});
+        eq("aot nested", Toml.parse('[[o]]\nk = 1\n[[o.p]]\nq = 1\n[[o.p]]\nq = 2\n[[o]]\nk = 2\n'), {o:[{k:1,p:[{q:1},{q:2}]},{k:2}]});
+        eq("aot with inline array value", Toml.parse('[[o]]\nv = [1, 2]\nw = { a = 1 }\n'), {o:[{v:[1,2],w:{a:1}}]});
+        eq("aot empty", Toml.parse('[[o]]\n'), {o:[{}]});
+        throws("aot over a table", () => Toml.parse('[o]\na = 1\n[[o]]\n'), "not an array of tables");
+        throws("table over an aot", () => Toml.parse('[[o]]\n[o]\n'), "is an array of tables");
+        throws("aot over a value", () => Toml.parse('o = [1]\n[[o]]\n'), "not an array of tables");
+        throws("aot unclosed", () => Toml.parse('[[o]\n'), "expected ]]");
 
         // lookup
         eq("lookup", Toml.lookup({a:{b:1}}, ["a", "b"]), 1);
@@ -56,6 +65,13 @@ Item {
            '# Every setting with its default value. Change what you like.\n\n# why\na = 1\n\n[t]\nb = [1,\n 2]\n');
         eq("template parses to the defaults", Toml.parse(Toml.template('a = 1\n[t]\nb = 2')), {a:1,t:{b:2}});
         eq("template then set", Toml.parse(Toml.set(Toml.template('a = 1\n[t]\nb = 2'), ["t", "b"], 5)), {a:1,t:{b:5}});
+
+        // writing next to arrays of tables
+        const withAot = 'a = 1\n[t]\nb = 2\n\n[[o]]\nk = 1\n\n[[o]]\nk = 2\n';
+        eq("set before aot", Toml.set(withAot, ["t", "c"], 3), withAot.replace("b = 2\n", "b = 2\nc = 3\n"));
+        eq("set root key before aot", Toml.set(withAot, ["a"], 9), withAot.replace("a = 1", "a = 9"));
+        eq("new root key lands before the first header", Toml.parse(Toml.set(withAot, ["z"], 1)).z, 1);
+        eq("aot kept after set", Toml.parse(Toml.set(withAot, ["t", "b"], 7)).o, [{k:1},{k:2}]);
 
         // writing
         const doc = '# my config\nterminal = "xterm"  # which one\nsize = 3\n\n[bar]\nheight = 36 # px\n\n[popouts]\nfoo = 1\n';
