@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import "Palette.js" as Palette
+import "../util"
 
 // Colors, fonts and sizes. The palette (`paletteName`) is Twilight
 // Sparkle's (night sky, lavender coat, indigo mane with a magenta streak,
@@ -15,12 +16,18 @@ Singleton {
     readonly property var twilight: Palette.twilight
     readonly property var presets: Palette.presets
 
-    // Inputs, set by whoever hosts the module.
+    // Read from theme.toml; a host that knows better sets them itself.
+    ConfigFile {
+        id: config
+
+        name: "theme"
+    }
+
     // "wallpaper": colors picked from the wallpaper, "twilight" or one of the
     // keys of `presets`.
-    property string paletteName: "wallpaper"
+    property string paletteName: config.get("palette", "wallpaper")
     // Absolute path of the picture to take colors from; "" for none.
-    property string wallpaper: ""
+    property string wallpaper: config.get("wallpaper", "")
     // A live wallpaper is drawn in the palette's colors, so it can't lend any.
     property bool liveWallpaper: false
 

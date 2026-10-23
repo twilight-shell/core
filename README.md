@@ -24,13 +24,15 @@ Sticker {
 | `Sticker`, `Tap`, `StyledText`, `Toggle`, `StarSlider`, `RollText` | The sticker UI kit. |
 | `Moon`, `Starfield`, `SparkleBurst` | Decorations. |
 
-The module knows nothing about the shell's config or the compositor. The host
-feeds `Theme` through plain properties:
+The module knows nothing about the compositor or the other components. `Theme`
+takes its palette from `theme.toml` (see Settings below). A host that knows
+better, say a wallpaper component that draws a live wallpaper, sets the same
+properties itself:
 
 ```qml
-Binding { target: Theme; property: "paletteName"; value: myConfig.palette }
-Binding { target: Theme; property: "wallpaper"; value: myConfig.wallpaper }
-Binding { target: Theme; property: "liveWallpaper"; value: myConfig.live !== "" }
+Binding { target: Theme; property: "paletteName"; value: "twilight" }
+Binding { target: Theme; property: "wallpaper"; value: "/path/to/picture.png" }
+Binding { target: Theme; property: "liveWallpaper"; value: true }
 ```
 
 ## Settings
@@ -45,6 +47,14 @@ ConfigFile { id: config; name: "app-launcher" }   // app-launcher.toml
 terminal: config.get("terminal", "xterm")         // the default lives in the code
 height: config.get("bar.height", 36)              // `height` in the [bar] table
 // config.set("terminal", "ghostty")
+```
+
+`Theme` reads `theme.toml`, shared by every component:
+
+```toml
+palette = "wallpaper"   # "twilight", "luna", "rarity", "pinkie", "celestia",
+                        # "fluttershy", "rainbow", or "wallpaper"
+wallpaper = ""          # picture to take the colors from
 ```
 
 A missing file reads as empty. A file that doesn't parse is reported in
