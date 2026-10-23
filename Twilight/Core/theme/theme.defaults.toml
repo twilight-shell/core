@@ -1,6 +1,21 @@
 # The palette: "twilight", a preset ("luna", "rarity", "pinkie", "celestia",
-# "fluttershy", "rainbow"), or "wallpaper" to pick the colors from the picture.
+# "fluttershy", "rainbow"), the name of a palette of your own (see below), or
+# "wallpaper" to pick the colors from the picture.
 palette = "wallpaper"
 
 # The picture to take the colors from; "" for none.
 wallpaper = ""
+
+# A palette of your own: use its name as the `palette` above. `base` tints the
+# background and the surfaces; `primary`, `accent` and `secondary` are used as
+# they are and the rest (text, muted, star...) is built to go with them. Any of
+# `bg`, `surface`, `surfaceHigh`, `border`, `text`, `muted`, `star`, `ink` and
+# `shadow` can be set as well to replace the one that was built.
+#
+# [palettes.mine]
+# name = "Mine"
+# base = "#3b2a6b"
+# primary = "#c9a0f0"
+# accent = "#ec4f9a"
+# secondary = "#5a5fc7"
+# star = "#ffd36b"

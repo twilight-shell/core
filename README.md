@@ -70,6 +70,25 @@ palette = "wallpaper"   # "twilight", "luna", "rarity", "pinkie", "celestia",
 wallpaper = ""          # picture to take the colors from
 ```
 
+### A palette of your own
+
+Add a `[palettes.<name>]` table to `theme.toml` and use its name as `palette`:
+
+```toml
+palette = "mine"
+
+[palettes.mine]
+name = "Mine"
+base = "#3b2a6b"        # tints the background and the surfaces
+primary = "#c9a0f0"     # primary, accent and secondary are used as they are
+accent = "#ec4f9a"
+secondary = "#5a5fc7"
+star = "#ffd36b"        # any other color of the palette can be set too
+```
+
+The rest (text, muted, star, the surfaces) is built from these, the same way the
+presets are built from their hues. `Theme.customPalettes` lists the tables.
+
 A file that doesn't parse is reported in `config.error` and the last good values
 stay.
 

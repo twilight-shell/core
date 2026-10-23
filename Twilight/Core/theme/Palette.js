@@ -34,6 +34,36 @@ function fromPreset(preset) {
     return build({ h: h[0], s: 0.45 }, { h: h[1], s: 0.7 }, { h: h[2], s: 0.8 }, { h: h[3], s: 0.55 });
 }
 
+// Hue and saturation (0..1) of a color given as text, for build(). Greys have
+// no hue; they get 0.
+function hueSat(color) {
+    const c = Qt.color(color);
+    return { h: Math.max(0, c.hslHue), s: c.hslSaturation };
+}
+
+// The colors a palette is made of, the keys of `twilight`.
+const keys = Object.keys(twilight);
+
+// A palette of your own. Four colors go through build() like a preset's hues:
+// `base`, the tint of the background, and `primary`, `accent` and `secondary`.
+// Then every color of `twilight` that `spec` names replaces what build() made,
+// which for those three means the color you picked is the one used. What `spec`
+// lacks is taken from Twilight's.
+function fromCustom(spec) {
+    const pick = (name, fallback) => hueSat(isColor(spec[name]) ? spec[name] : fallback);
+    const palette = build(pick("base", twilight.surface), pick("primary", twilight.primary),
+                          pick("accent", twilight.accent), pick("secondary", twilight.secondary));
+    for (const key of keys) {
+        if (isColor(spec[key]))
+            palette[key] = Qt.color(spec[key]);
+    }
+    return palette;
+}
+
+function isColor(value) {
+    return typeof value === "string" && /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value);
+}
+
 function clamp(v, lo, hi) {
     return Math.max(lo, Math.min(hi, v));
 }

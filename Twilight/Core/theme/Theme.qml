@@ -24,10 +24,12 @@ Singleton {
         defaults: Qt.resolvedUrl("theme.defaults.toml")
     }
 
-    // "wallpaper": colors picked from the wallpaper, "twilight" or one of the
-    // keys of `presets`.
+    // "wallpaper": colors picked from the wallpaper, "twilight", one of the
+    // keys of `presets` or of `customPalettes`.
     // The defaults file is read a moment after the first binding runs, hence `?? ""`.
     property string paletteName: config.get("palette") ?? ""
+    // The palettes of your own, the [palettes.<name>] tables of theme.toml.
+    readonly property var customPalettes: config.get("palettes") ?? ({})
     // Absolute path of the picture to take colors from; "" for none.
     property string wallpaper: config.get("wallpaper") ?? ""
     // A live wallpaper is drawn in the palette's colors, so it can't lend any.
@@ -35,6 +37,9 @@ Singleton {
 
     readonly property bool fromWallpaper: paletteName === "wallpaper" && !liveWallpaper && quantizer.colors.length > 0
     readonly property var palette: {
+        const custom = customPalettes[paletteName];
+        if (custom)
+            return Palette.fromCustom(custom);
         const preset = presets[paletteName];
         if (preset)
             return Palette.fromPreset(preset);
