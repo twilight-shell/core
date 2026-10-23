@@ -1,5 +1,7 @@
 # twilight-shell/core
 
+[![ci](https://github.com/twilight-shell/core/actions/workflows/ci.yml/badge.svg)](https://github.com/twilight-shell/core/actions/workflows/ci.yml)
+
 The shared QML module behind the twilight shell and its components: theme,
 sticker look, small UI kit. Components import it instead of copying it.
 
@@ -111,6 +113,10 @@ QML_IMPORT_PATH=/path/to/core qs -c my-shell
 ```
 
 Without it Quickshell fails with `module "Twilight.Core" is not installed`.
+
+## Contributing
+
+Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Agents and the like: [AGENTS.md](AGENTS.md).
 
 ## License
 
