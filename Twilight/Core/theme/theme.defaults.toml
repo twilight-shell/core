@@ -1,0 +1,6 @@
+# The palette: "twilight", a preset ("luna", "rarity", "pinkie", "celestia",
+# "fluttershy", "rainbow"), or "wallpaper" to pick the colors from the picture.
+palette = "wallpaper"
+
+# The picture to take the colors from; "" for none.
+wallpaper = ""

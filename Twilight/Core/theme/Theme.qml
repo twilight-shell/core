@@ -21,13 +21,14 @@ Singleton {
         id: config
 
         name: "theme"
+        defaults: Qt.resolvedUrl("theme.defaults.toml")
     }
 
     // "wallpaper": colors picked from the wallpaper, "twilight" or one of the
     // keys of `presets`.
-    property string paletteName: config.get("palette", "wallpaper")
+    property string paletteName: config.get("palette")
     // Absolute path of the picture to take colors from; "" for none.
-    property string wallpaper: config.get("wallpaper", "")
+    property string wallpaper: config.get("wallpaper")
     // A live wallpaper is drawn in the palette's colors, so it can't lend any.
     property bool liveWallpaper: false
 

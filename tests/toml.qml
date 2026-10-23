@@ -6,6 +6,15 @@ import "../Twilight/Core/util/Toml.js" as Toml
 // Exits with a non-zero code when a check fails.
 Item {
     Component.onCompleted: {
+        try {
+            run();
+        } catch (e) {
+            console.log("FAIL exception:", e);
+            Qt.exit(1);
+        }
+    }
+
+    function run() {
         let pass = 0, fails = 0;
         const eq = (name, got, want) => {
             const g = JSON.stringify(got), w = JSON.stringify(want);
@@ -35,6 +44,18 @@ Item {
         throws("junk", () => Toml.parse('a = 1 2'), "unexpected");
         throws("line no", () => Toml.parse('a = 1\nb = 2\nc = ?'), "line 3");
         throws("aot", () => Toml.parse('[[x]]'), "not supported");
+
+        // lookup
+        eq("lookup", Toml.lookup({a:{b:1}}, ["a", "b"]), 1);
+        eq("lookup missing", Toml.lookup({a:{b:1}}, ["a", "c"]), undefined);
+        eq("lookup through a value", Toml.lookup({a:1}, ["a", "b"]), undefined);
+        eq("lookup false", Toml.lookup({a:false}, ["a"]), false);
+
+        // template
+        eq("template", Toml.template('# why\na = 1\n\n[t]\nb = [1,\n 2]\n'),
+           '# Every setting with its default value. Change what you like.\n\n# why\na = 1\n\n[t]\nb = [1,\n 2]\n');
+        eq("template parses to the defaults", Toml.parse(Toml.template('a = 1\n[t]\nb = 2')), {a:1,t:{b:2}});
+        eq("template then set", Toml.parse(Toml.set(Toml.template('a = 1\n[t]\nb = 2'), ["t", "b"], 5)), {a:1,t:{b:5}});
 
         // writing
         const doc = '# my config\nterminal = "xterm"  # which one\nsize = 3\n\n[bar]\nheight = 36 # px\n\n[popouts]\nfoo = 1\n';
