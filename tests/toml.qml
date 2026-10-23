@@ -84,6 +84,26 @@ Item {
         eq("new root key lands before the first header", Toml.parse(Toml.set(withAot, ["z"], 1)).z, 1);
         eq("aot kept after set", Toml.parse(Toml.set(withAot, ["t", "b"], 7)).o, [{k:1},{k:2}]);
 
+        // removing
+        const rm = '# top\na = 1 # one\nlist = [\n  1,\n  2,\n] # many\nb = 2\n\n[t]\nx = 1\ny = 2\n\n[t.sub]\nz = 3\n\n[u]\nk = 4\n';
+        eq("remove a root key", Toml.remove(rm, ["a"]), rm.replace("a = 1 # one\n", ""));
+        eq("remove a multi-line value", Toml.remove(rm, ["list"]), rm.replace("list = [\n  1,\n  2,\n] # many\n", ""));
+        eq("remove a table key", Toml.remove(rm, ["t", "x"]), rm.replace("x = 1\n", ""));
+        eq("remove a table with what is inside it", Toml.remove(rm, ["t"]), '# top\na = 1 # one\nlist = [\n  1,\n  2,\n] # many\nb = 2\n\n[u]\nk = 4\n');
+        eq("remove a sub-table only", Toml.remove(rm, ["t", "sub"]), rm.replace("[t.sub]\nz = 3\n\n", ""));
+        eq("remove the last table", Toml.remove(rm, ["u"]), rm.replace("\n[u]\nk = 4\n", ""));
+        eq("remove what isn't there", Toml.remove(rm, ["nope"]), rm);
+        eq("remove a key that isn't there", Toml.remove(rm, ["t", "nope"]), rm);
+        eq("remove keeps the rest parsing", Toml.parse(Toml.remove(rm, ["t"])), {a:1,list:[1,2],b:2,u:{k:4}});
+        eq("remove a table keeps a similar name", Toml.parse(Toml.remove('[ab]\nx=1\n[a]\nx=2\n', ["a"])), {ab:{x:1}});
+        eq("remove the first key leaves no blank line at the top", Toml.remove('a = 1\n\n[t]\nx = 1\n', ["a"]), '[t]\nx = 1\n');
+        eq("remove from empty", Toml.remove('', ["a"]), '');
+        eq("remove crlf kept", Toml.remove('a = 1\r\nb = 2\r\n', ["a"]), 'b = 2\r\n');
+        eq("remove a table before an array of tables", Toml.parse(Toml.remove('[t]\nx=1\n\n[[o]]\nk=1\n', ["t"])), {o:[{k:1}]});
+        const twoPalettes = '[palettes.mine]\nname = "Mine"\nbase = "#111111"\n\n[palettes.other]\nname = "Other"\n';
+        eq("remove one of two palettes", Toml.remove(twoPalettes, ["palettes", "mine"]), '[palettes.other]\nname = "Other"\n');
+        eq("remove the other palette", Toml.remove(twoPalettes, ["palettes", "other"]), '[palettes.mine]\nname = "Mine"\nbase = "#111111"\n');
+
         // writing
         const doc = '# my config\nterminal = "xterm"  # which one\nsize = 3\n\n[bar]\nheight = 36 # px\n\n[popouts]\nfoo = 1\n';
         eq("set existing keeps comment", Toml.set(doc, ["terminal"], "ghostty"), doc.replace('"xterm"', '"ghostty"'));
