@@ -14,3 +14,4 @@ Moon 1.0 deco/Moon.qml
 Starfield 1.0 deco/Starfield.qml
 SparkleBurst 1.0 deco/SparkleBurst.qml
 Toml 1.0 util/Toml.js
+Palette 1.0 theme/Palette.js

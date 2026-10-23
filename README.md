@@ -21,6 +21,7 @@ Sticker {
 | `Icons` (singleton) | Icon lookup with a chain of candidates. |
 | `Astro` (singleton) | Moon phase and its name for any date. |
 | `ConfigFile` | A TOML settings file in `~/.config/twilight-shell/`, reloaded when it changes. |
+| `Palette` | The palette math behind `Theme`: `Palette.fromPreset(Palette.presets.luna)`, `Palette.fromCustom(spec)`, for swatches and editors. |
 | `Toml` | The reader and writer behind it: `Toml.parse(text)`, `Toml.set(text, ["a", "b"], value)`. |
 | `Sticker`, `Tap`, `StyledText`, `Toggle`, `StarSlider`, `RollText` | The sticker UI kit. |
 | `Moon`, `Starfield`, `SparkleBurst` | Decorations. |
